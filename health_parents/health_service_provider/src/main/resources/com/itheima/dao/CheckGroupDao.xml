@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itheima.dao.CheckGroupDao">
+
+    <resultMap id="baseResultMap" type="com.itheima.pojo.CheckGroup">
+        <id column="id" property="id"></id>
+        <result column="name" property="name"></result>
+        <result column="code" property="code"></result>
+        <result column="helpCode" property="helpCode"></result>
+        <result column="sex" property="sex"></result>
+        <result column="remark" property="remark"></result>
+        <result column="attention" property="attention"></result>
+    </resultMap>
+    <!--多对多映射-->
+    <resultMap id="findByIdResultMap" type="com.itheima.pojo.CheckGroup" extends="baseResultMap">
+        <collection property="checkItems"
+                    ofType="com.itheima.pojo.CheckItem"
+                    select="com.itheima.dao.CheckItemDao.findByCheckItemId"
+                    column="id">
+        </collection>
+    </resultMap>
+
+    <insert id="add" parameterType="com.itheima.pojo.CheckGroup">
+     <selectKey resultType="java.lang.Integer" order="AFTER" keyProperty="id">
+         select LAST_INSERT_ID()
+     </selectKey>
+       insert into t_checkgroup (code,name,sex,helpCode,attention,remark) values(#{code},#{name},#{sex},#{helpCode},#{attention},#{remark})
+    </insert>
+
+    <insert id="setCheckgroupAndCheckitem" parameterType="map">
+        insert into t_checkgroup_checkitem(checkgroup_id,checkitem_id) values(#{checkgroupId},#{checkitemId})
+    </insert>
+
+    <select id="findByContion" parameterType="String" resultType="com.itheima.pojo.CheckGroup">
+        select * from t_checkgroup
+        <if test="value!=null and value.length>0">
+            where code like #{value} or name like #{value} or helpCode like #{value}
+        </if>
+</select>
+
+    <select id="deleteByCheckGroupId" parameterType="int" resultType="Long">
+        select count(*) from t_checkgroup_checkitem where checkgroup_id=#{id}
+    </select>
+
+    <delete id="delete" parameterType="int">
+        delete from t_checkgroup where id=#{id}
+    </delete>
+
+    <select id="findById" parameterType="int" resultType="com.itheima.pojo.CheckGroup">
+        select * from t_checkgroup where id=#{id}
+    </select>
+
+    <select id="findCheckGroupAndCheckItem" parameterType="int" resultType="int">
+        select checkitem_id from t_checkgroup_checkitem where checkgroup_id=#{id}
+    </select>
+
+    <update id="update" parameterType="com.itheima.pojo.CheckGroup">
+        update t_checkgroup
+        <set>
+            <if test="name !=null">
+                name=#{name},
+            </if>
+            <if test="code !=null">
+                code=#{code},
+            </if>
+            <if test="helpCode !=null">
+                helpCode=#{helpCode},
+            </if>
+            <if test="sex !=null">
+                sex=#{sex},
+            </if>
+            <if test="attention !=null">
+                attention=#{attention},
+            </if>
+            <if test="remark !=null">
+                remark=#{remark}
+            </if>
+        </set>
+        where id=#{id}
+    </update>
+
+    <delete id="deleteAssocication" parameterType="int" >
+        delete from t_checkgroup_checkitem where checkgroup_id=#{id}
+    </delete>
+
+    <select id="findAll" resultType="com.itheima.pojo.CheckGroup">
+        select * from t_checkgroup
+    </select>
+
+    <select id="selectSetmeal" parameterType="int" resultType="long">
+        select count(*) from t_setmeal_checkgroup where checkgroup_id=#{id}
+    </select>
+
+    <delete id="deleteCheckItemAndCheckGroup" parameterType="int">
+        delete from t_checkgroup_checkitem where checkgroup_id=#{id}
+    </delete>
+
+    <select id="findCheckGroupById" parameterType="int" resultMap="findByIdResultMap">
+         SELECT
+            t1.*
+         FROM
+            t_checkgroup t1,
+            t_setmeal_checkgroup t2
+
+         WHERE
+            t1.`id`=t2.`checkgroup_id` AND t2.`setmeal_id`=#{setmeal_id}
+    </select>
+</mapper>

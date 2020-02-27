@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itheima.dao.OrderDao">
+
+    <select id="findByContion" parameterType="com.itheima.pojo.Order" resultType="com.itheima.pojo.Order">
+        select * from t_order
+        <where>
+            <if test="id!=null">
+                id=#{id},
+            </if>
+            <if test="orderDate!=null">
+                orderDate=#{order_Date},
+            </if>
+            <if test="setmeal_id!=null">
+                setmeal_id=#{setmealId},
+            </if>
+        </where>
+    </select>
+
+    <insert id="save" parameterType="com.itheima.pojo.Order">
+       <selectKey resultType="java.lang.Integer" order="AFTER" keyColumn="id">
+           SELECT LAST_INSERT_ID()
+       </selectKey>
+        insert into t_order (member_id,orderDate,orderType,orderStatus,setmeal_id) values(#{memberId},#{orderDate},#{orderType},#{orderStatus},#{setmealId})
+    </insert>
+
+    <select id="findById" parameterType="int" resultType="map">
+       SELECT
+         t1.name setmeal,
+         t3.name member,
+         t2.orderDate,
+         t2.orderType
+       FROM
+         t_setmeal t1,
+         t_order t2,
+         t_member t3
+       WHERE
+         t2.member_id=t3.id AND t2.setmeal_id=t1.id AND t2.id=#{id};
+    </select>
+
+    <select id="findOrderCountByDate" resultType="int" parameterType="String">
+        SELECT COUNT(id) FROM t_order WHERE orderDate=#{value}
+    </select>
+
+    <select id="findVisitsCountByDate" resultType="int" parameterType="String">
+        SELECT COUNT(id) FROM t_order WHERE orderDate=#{value} and orderType='已到诊'
+    </select>
+
+    <select id="findOrderCountAfterDate" resultType="int" parameterType="String">
+        SELECT COUNT(id) FROM t_order WHERE orderDate &gt;=#{value}
+    </select>
+
+    <select id="findVisitsCountAfterDate" resultType="int" parameterType="String">
+        SELECT COUNT(id) FROM t_order WHERE orderDate &gt;=#{value} and orderType='已到诊'
+    </select>
+
+    <select id="findHotSetmeal" resultType="map">
+        SELECT
+           t2.name,
+           COUNT(t1.id) setmeal_count,
+           COUNT(t1.id)/(SELECT COUNT(id) FROM t_order) proportion
+        FROM
+           `t_order` t1,
+           `t_setmeal` t2
+        WHERE
+            t1.setmeal_id=t2.id
+        GROUP BY
+            t2.name
+        ORDER BY
+            setmeal_count DESC limit 0,4
+    </select>
+</mapper>
